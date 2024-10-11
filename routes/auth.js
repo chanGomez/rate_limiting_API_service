@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const db = require("../db/db"); // Import the PostgreSQL db from db.js
 const router = express.Router();
+const { authenticateToken } = require("../middleware/authorization");
 require("dotenv").config();
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key";
@@ -59,10 +60,12 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
+    //Add 2 factor authentication here!!!
+
     // Generate a JWT
     const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: "1h" });
 
-    res.json({ token });
+    res.json("successfully logged in", "token: " + { token });
   } catch (error) {
     res
       .status(500)
@@ -70,12 +73,18 @@ router.post("/login", async (req, res) => {
   }
 });
 
+//Dashboard route where only authorized users can access
+//Require authorization middleware
+router.get("/dashboard", authenticateToken, (req, res) => {
+  res.json({ message: "Welcome to the dashboard" });
+});
+
 // Logout route (Token blacklisting)
 router.post("/logout", async (req, res) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-console.log(req.headers);
-console.log(authHeader);
+  const token = req.headers["authorization"];
+//   const token = authHeader && authHeader.split(" ")[1];
+// console.log(token);
+// console.log(authHeader);
 
   if (!token) {
     return res.status(400).json({ message: "No token provided" });
@@ -84,7 +93,7 @@ console.log(authHeader);
   try {
     // Add token to the blacklist
     const insertTokenQuery = 'INSERT INTO token_blacklist (token) VALUES ($1)';
-    await pool.query(insertTokenQuery, [token]);
+    await db.query(insertTokenQuery, [token]);
 
     res.json({ message: "Logged out successfully" });
   } catch (error) {
