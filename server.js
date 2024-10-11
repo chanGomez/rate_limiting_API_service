@@ -1,15 +1,14 @@
 const express = require("express");
 const app = express();
-
 const authRouter = require("./routes/auth");
-
 app.use(express.json()); // Add this if you handle JSON requests
-app.use("/auth", authRouter);
 
 // Routes
 app.get("/", (req, res) => {
   res.status(200).send("Hello World!");
 });
+
+app.use("/auth", authRouter);
 
 // Error handling middleware (optional)
 app.use("*", (err, req, res, next) => {

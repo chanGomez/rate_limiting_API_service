@@ -83,8 +83,6 @@ router.get("/dashboard", authenticateToken, (req, res) => {
 router.post("/logout", async (req, res) => {
   const token = req.headers["authorization"];
 //   const token = authHeader && authHeader.split(" ")[1];
-// console.log(token);
-// console.log(authHeader);
 
   if (!token) {
     return res.status(400).json({ message: "No token provided" });
